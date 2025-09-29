@@ -1,0 +1,39 @@
+
+
+{
+    "global": {
+        "output_path": "output",
+        "clean": {
+            "uav_session": false
+        }
+    },
+    "setup": {
+        "list_ign_parts": [
+            
+        ],
+        "list_uav_sessions": [
+            "20231202_REU-TROU-DEAU_UAV-01_01", "20231208_REU-ST-LEU_UAV-01_03"
+        ],
+        "uav_segmentation_model_name": "SegForCoral-b2-2025_06_30_19127-bs16_refine",
+        "list_labels_uav_predictions": ["Acropore_branched", "Acropore_tabular", "Sand", "No_acropore_massive", "No_acropore_sub_massive"],
+        "tiles": {
+            "tile_size": 256,
+            "horizontal_overlap": 0.75,
+            "vertical_overlap": 0.75
+        }
+    },
+    "train": {
+        "base_model": "nvidia/mit-b0",
+        "model_name": "SegIGNCoral",
+        "path_output_dir": "models",
+        "parameters": {
+            "epochs": 100,
+            "batch_size": 16,
+            "initial_learning_rate": 1e-5,
+            "weight_decay": 0.01,
+            "factor_lr_scheduler": 0.1,
+            "patience_lr_scheduler": 5,
+            "early_stopping_patience": 10
+        }
+    }
+}

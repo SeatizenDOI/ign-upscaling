@@ -1,5 +1,4 @@
 <p align="center">
-  <a href="https://doi.org/10.5281/zenodo.15455743"><img src="https://zenodo.org/badge/967978876.svg" alt="DOI"></a>
   <a href="https://github.com/SeatizenDOI/ign-upscaling/graphs/contributors"><img src="https://img.shields.io/github/contributors/SeatizenDOI/ign-upscaling" alt="GitHub contributors"></a>
   <a href="https://github.com/SeatizenDOI/ign-upscaling/network/members"><img src="https://img.shields.io/github/forks/SeatizenDOI/ign-upscaling" alt="GitHub forks"></a>
   <a href="https://github.com/SeatizenDOI/ign-upscaling/issues"><img src="https://img.shields.io/github/issues/SeatizenDOI/ign-upscaling" alt="GitHub issues"></a>

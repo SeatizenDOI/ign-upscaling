@@ -1,0 +1,7 @@
+name: ign_upscaling_env
+channels:
+  - defaults
+dependencies:
+  - python=3.13
+  - pip=25.2
+  - pip:
