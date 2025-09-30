@@ -32,6 +32,15 @@ def main(opt: Namespace) -> None:
     # Download uav orthophoto
     uav_manager = UAVManager(cp, pm)
 
+    """
+    Pour chaque fichier d'annotation,
+    On récupère l'ortho IGN
+    On récupère la boundary IGN associé
+
+    
+    
+    """
+
 
 
 if __name__ == "__main__":

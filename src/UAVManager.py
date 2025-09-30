@@ -1,5 +1,7 @@
 import rasterio
-import pandas as pd
+from rasterio.enums import Compression
+
+import numpy as np
 from pathlib import Path
 
 from .PathManager import PathManager
@@ -13,8 +15,7 @@ class UAVManager:
         self.cp = cp
         self.pm = pm
 
-        self.ortho_information, self.ortho_information_by_name = {}, {}
-        self.default_crs_uav = None
+        self.ia_filepath, self.ia_filepath_4band = Path(), Path()
         self.setup()
 
     
@@ -31,10 +32,14 @@ class UAVManager:
                 print(f"Cannot find raster folder for session {session_path_ia}")
                 return
             
-            ia_filepath = Path(session_path_ia, f"{session}_{self.cp.uav_segmentation_model_name}_ortho_predictions.tif")
-            if not ia_filepath.exists() or not ia_filepath.is_file(): 
-                print(f"Cannot find raster for session {ia_filepath}")
+            self.ia_filepath = Path(session_path_ia, f"{session}_{self.cp.uav_segmentation_model_name}_ortho_predictions.tif")
+            if not self.ia_filepath.exists() or not self.ia_filepath.is_file(): 
+                print(f"Cannot find raster for session {self.ia_filepath}")
                 return
+            
+            
+            self.ia_filepath_4band = Path(session_path_ia, f"{session}_{self.cp.uav_segmentation_model_name}_ortho_predictions_4band.tif")
+            self.generate_4band_raster()
 
 
     def setup_session_uav(self, session_path: Path) -> None:
@@ -60,3 +65,41 @@ class UAVManager:
         doi = version_json["id"]
 
         download_manager_without_token(list_files, session_path, doi)
+    
+
+    def generate_4band_raster(self) -> None:
+        """ Transform the SegForcoral output into a 4 values raster."""
+
+        print("Transform the raster into a 4 values raster without tabular. ")
+
+        if self.ia_filepath_4band.exists():
+            self.ia_filepath_4band.unlink()
+        
+        # Transform Tabular into other corals and shift index.
+        with rasterio.open(self.ia_filepath) as src:
+            profile = src.profile
+            data = src.read(1)  # read first band
+        
+        # Merge Tabular into Other Corals
+        data[data == 2] = 4
+        new_data = np.zeros_like(data, dtype=rasterio.uint8)
+
+        new_data[data == 1] = 1  # Acropora Branching
+        new_data[data == 3] = 2  # Non-acropora Massive
+        new_data[data == 4] = 3  # Other Corals + Acropora Tabular
+        new_data[data == 5] = 4  # Sand
+
+        new_profile = {
+             "driver":"GTiff",
+            "height": data.shape[0],
+            "width": data.shape[1],
+            "dtype": np.uint8,
+            "count": 1,
+            "crs": profile.get("crs"),
+            "transform": profile.get("transform"),
+            "compress": "LZW",
+            "nodata": 0,
+        }
+
+        with rasterio.open(self.ia_filepath_4band, "w", **new_profile) as dst:
+            dst.write(new_data, 1)
