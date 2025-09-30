@@ -3,6 +3,8 @@ from argparse import Namespace, ArgumentParser
 from src.ConfigParser import ConfigParser
 from src.PathManager import PathManager
 from src.UAVManager import UAVManager
+from src.TileManager import TileManager
+from src.IGNManager import IGNManager
 from src.utils.lib_tools import print_header
 
 
@@ -29,18 +31,20 @@ def main(opt: Namespace) -> None:
     pm = PathManager(cp.output_path)
     pm.setup(cp)
 
-    # Download uav orthophoto
+    # Download uav orthophoto.
     uav_manager = UAVManager(cp, pm)
 
-    """
-    Pour chaque fichier d'annotation,
-    On récupère l'ortho IGN
-    On récupère la boundary IGN associé
+    # Initialize ign tile manager.
+    ign_manager = IGNManager(cp, pm)
+
+    # Extract tiles and annotations.
+    tile_manager = TileManager(cp, pm)
+    tile_manager.create_tiles_and_annotations(uav_manager, ign_manager)
+    tile_manager.convert_tiff_to_png(pm.cropped_ortho_tif_folder, pm.train_images_folder)
+    tile_manager.convert_tiff_to_png(pm.cropped_annotation_tif_folder, pm.train_annotations_folder)
+    tile_manager.validate_annotations_pngs()
 
     
-    
-    """
-
 
 
 if __name__ == "__main__":

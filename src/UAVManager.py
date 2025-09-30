@@ -15,13 +15,13 @@ class UAVManager:
         self.cp = cp
         self.pm = pm
 
-        self.ia_filepath, self.ia_filepath_4band = Path(), Path()
+        self.annotations_files = []
         self.setup()
 
     
     def setup(self) -> None:
         
-        print("\n\n------ [UAV - Download IA] ------\n")
+        print("\n\n------ [UAV - Download Annotations from Zenodo] ------\n")
         # Download sessions
         for session in self.cp.uav_sessions:
             session_path = Path(self.pm.uav_sessions_folder, session)
@@ -32,14 +32,14 @@ class UAVManager:
                 print(f"Cannot find raster folder for session {session_path_ia}")
                 return
             
-            self.ia_filepath = Path(session_path_ia, f"{session}_{self.cp.uav_segmentation_model_name}_ortho_predictions.tif")
-            if not self.ia_filepath.exists() or not self.ia_filepath.is_file(): 
-                print(f"Cannot find raster for session {self.ia_filepath}")
+            ia_filepath = Path(session_path_ia, f"{session}_{self.cp.uav_segmentation_model_name}_ortho_predictions.tif")
+            if not ia_filepath.exists() or not ia_filepath.is_file(): 
+                print(f"Cannot find raster for session {ia_filepath}")
                 return
             
             
-            self.ia_filepath_4band = Path(session_path_ia, f"{session}_{self.cp.uav_segmentation_model_name}_ortho_predictions_4band.tif")
-            self.generate_4band_raster()
+            ia_filepath_4band = Path(session_path_ia, f"{session}_{self.cp.uav_segmentation_model_name}_ortho_predictions_4band.tif")
+            self.generate_4band_raster(ia_filepath, ia_filepath_4band)
 
 
     def setup_session_uav(self, session_path: Path) -> None:
@@ -67,16 +67,19 @@ class UAVManager:
         download_manager_without_token(list_files, session_path, doi)
     
 
-    def generate_4band_raster(self) -> None:
+    def generate_4band_raster(self, ia_filepath: Path, ia_filepath_4band: Path) -> None:
         """ Transform the SegForcoral output into a 4 values raster."""
 
         print("Transform the raster into a 4 values raster without tabular. ")
 
-        if self.ia_filepath_4band.exists():
-            self.ia_filepath_4band.unlink()
+        self.annotations_files.append(ia_filepath_4band)
+
+        if ia_filepath_4band.exists():
+            print("File has been already transform")
+            return
         
         # Transform Tabular into other corals and shift index.
-        with rasterio.open(self.ia_filepath) as src:
+        with rasterio.open(ia_filepath) as src:
             profile = src.profile
             data = src.read(1)  # read first band
         
@@ -101,5 +104,5 @@ class UAVManager:
             "nodata": 0,
         }
 
-        with rasterio.open(self.ia_filepath_4band, "w", **new_profile) as dst:
+        with rasterio.open(ia_filepath_4band, "w+", **new_profile) as dst:
             dst.write(new_data, 1)

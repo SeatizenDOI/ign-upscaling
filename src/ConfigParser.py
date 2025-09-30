@@ -89,8 +89,12 @@ class ConfigParser:
         return Path(self.global_dict.get("output_path", None))
 
     @property
-    def list_label_uav(self) -> list:
-        return self.setup_dict.get("list_labels_uav_predictions", [])
+    def list_boundary_ign_geojson(self) -> list:
+        return self.setup_dict.get("list_boundary_ign_geojson", [])
+    
+    @property
+    def match_ign_number_with_place_name(self) -> dict:
+        return self.setup_dict.get("match_ign_number_with_place_name", {})
     
     @property
     def hugging_face_token(self) -> str:
@@ -103,12 +107,12 @@ class ConfigParser:
         return int(self.tiles_dict.get("tile_size", 0))
 
     @property
-    def horizontal_overlap(self) -> int:
-        return int(self.tiles_dict.get("horizontal_overlap", 0))
+    def horizontal_overlap(self) -> float:
+        return float(self.tiles_dict.get("horizontal_overlap", 0.0))
     
     @property
-    def vertical_overlap(self) -> int:
-        return int(self.tiles_dict.get("vertical_overlap", 0))
+    def vertical_overlap(self) -> float:
+        return float(self.tiles_dict.get("vertical_overlap", 0.0))
 
     @property
     def horizontal_step(self) -> int:
