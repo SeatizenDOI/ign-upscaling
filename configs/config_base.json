@@ -4,7 +4,13 @@
     "global": {
         "output_path": "output",
         "clean": {
-            "uav_session": false
+            "uav_session": false,
+            "coarse_cropped_ortho_tif": false,
+            "coarse_annotation_tif": false,
+            "coarse_train": false,
+            "refine_cropped_ortho_tif": false,
+            "refine_annotation_tif": false,
+            "refine_train": false
         }
     },
     "setup": {
@@ -22,6 +28,10 @@
             "./configs/boundary_ign_stleu/boundary_ign_stleu.geojson",
             "./configs/boundary_ign_troudeau/boundary_ign_troudeau.geojson"
         ],
+        "list_drone_test_geojson": [
+            "./configs/drone_test_polygon_stleu.geojson",
+            "./configs/drone_test_polygon_troudeau.geojson"
+        ],
         "match_ign_number_with_place_name": {
             "0315-7670": "TROU-DEAU",
             "0320-7660": "ST-LEU"
@@ -37,13 +47,26 @@
         "model_name": "SegIGNCoral",
         "path_output_dir": "models",
         "parameters": {
-            "epochs": 100,
+            "epochs": 500,
             "batch_size": 16,
             "initial_learning_rate": 1e-5,
             "weight_decay": 0.01,
             "factor_lr_scheduler": 0.1,
-            "patience_lr_scheduler": 5,
-            "early_stopping_patience": 10
+            "patience_lr_scheduler": 25,
+            "early_stopping_patience": 50,
+            "weight_dice": 1.0,
+            "weight_ce": 0.0
+        },
+        "first_model": {
+            "model_path": "./models/SegIGNCoral-b0-2025_09_30_55357-bs16",
+            "resume_from": null
+        },
+        "second_model": {
+            "model_path": "",
+            "resume_from": null,
+            "upload_on_huggingface": false
         }
+
+        
     }
 }

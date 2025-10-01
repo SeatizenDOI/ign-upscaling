@@ -29,10 +29,10 @@ class TileManager:
         self.pm = pm
 
 
-    def load_boundary_ign_with_crs(self, crs) :
+    def load_geojson_with_crs(self, crs: str, list_geojson_path: Path) :
 
         # Load the boundary IGN into the good crs for each ortho.
-        gdfs = [gpd.read_file(f).to_crs(crs) for f in self.cp.list_boundary_ign_geojson]
+        gdfs = [gpd.read_file(f).to_crs(crs) for f in list_geojson_path]
 
         # Concat all dataframe.
         merged_gdf = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True), crs=crs)
@@ -45,8 +45,8 @@ class TileManager:
         
         print("\n\n------ [TILE - Create IGN Tiles] ------\n")
 
-        nb_tile_tif = len(list(self.pm.cropped_ortho_tif_folder.iterdir())) 
-        nb_anno_tif = len(list(self.pm.cropped_annotation_tif_folder.iterdir()))
+        nb_tile_tif = len(list(self.pm.coarse_cropped_ortho_tif_folder.iterdir())) 
+        nb_anno_tif = len(list(self.pm.coarse_annotation_tif_folder.iterdir()))
 
         if nb_anno_tif > 0 and nb_anno_tif == nb_tile_tif:
             print("We have already split the ortho into tiles.")
@@ -66,10 +66,11 @@ class TileManager:
                 print(f"Working with orthophoto {ortho_path.name}")
 
                 with rasterio.open(ortho_path) as ortho:
-                    boundary_ign = self.load_boundary_ign_with_crs(ortho.crs)
+                    boundary_ign = self.load_geojson_with_crs(ortho.crs, self.cp.list_boundary_ign_geojson)
+                    zone_test = self.load_geojson_with_crs(ortho.crs, self.cp.list_drone_test_geojson)
  
                     tile_coords = [
-                        (session_name, x, y, ortho_path, annotation_path, boundary_ign)
+                        (session_name, x, y, ortho_path, annotation_path, boundary_ign, zone_test)
                         for x in range(0, ortho.width - self.cp.tile_size + 1, self.cp.horizontal_step)
                         for y in range(0, ortho.height - self.cp.tile_size + 1, self.cp.vertical_step)
                     ]
@@ -100,7 +101,7 @@ class TileManager:
 
         print("\n\n------ [TILES - Validate png files] ------\n")
         cpt = 0
-        for file in self.pm.train_annotations_folder.iterdir():
+        for file in self.pm.coarse_train_annotation_folder.iterdir():
             if file.suffix.lower() != ".png": continue
 
             try:
@@ -115,17 +116,17 @@ class TileManager:
                     file.unlink()
 
                     # Delete annotation TIF
-                    tif_path = Path(self.pm.cropped_annotation_tif_folder, f"{file.stem}.tif")
+                    tif_path = Path(self.pm.coarse_annotation_tif_folder, f"{file.stem}.tif")
                     if tif_path.exists():
                         tif_path.unlink()
 
                     # Delete image PNG
-                    img_png_path = Path(self.pm.train_images_folder, file.name)
+                    img_png_path = Path(self.pm.coarse_train_images_folder, file.name)
                     if img_png_path.exists():
                         img_png_path.unlink()
 
                     # Delete image TIF
-                    img_tif_path = Path(self.pm.cropped_ortho_tif_folder, f"{file.stem}.tif")
+                    img_tif_path = Path(self.pm.coarse_cropped_ortho_tif_folder, f"{file.stem}.tif")
                     if img_tif_path.exists():
                         img_tif_path.unlink()
 
@@ -136,7 +137,7 @@ class TileManager:
         print(f"We have delete {cpt} annotations")
 
     def process_tile(self, args: tuple[str, int, int, Path, Path]) -> None:
-        session_name, tile_x, tile_y, orthophoto_path, annotation_path, boundary_ign = args
+        session_name, tile_x, tile_y, orthophoto_path, annotation_path, boundary_ign, zone_test = args
         tile_size = self.cp.tile_size
         year = orthophoto_path.name.split("-")[1]
 
@@ -150,11 +151,8 @@ class TileManager:
                 return
             
             # Skip if intersects test zone
-            # if "TROU-DEAU" in session_name and tile_bounds.intersects(test_zone_polygons["TROU-DEAU"]):
-            #     return
-            # if "ST-LEU" in session_name and tile_bounds.intersects(test_zone_polygons["ST-LEU"]):
-            #     return
-            
+            if tile_bounds.intersects(zone_test): return
+
             tile_data = ortho.read(window=window)
             tile_transform = rasterio.windows.transform(window, ortho.transform)
 
@@ -173,7 +171,7 @@ class TileManager:
 
 
             tile_filename = f"{session_name}_{year}_{tile_x}_{tile_y}.tif"
-            tile_output_path = Path(self.pm.cropped_ortho_tif_folder, tile_filename)
+            tile_output_path = Path(self.pm.coarse_cropped_ortho_tif_folder, tile_filename)
             
             meta = ortho.meta.copy()
             meta.update({
@@ -188,7 +186,7 @@ class TileManager:
 
             tile_geom = mapping(box(*rasterio.windows.bounds(window, ortho.transform)))
             tile_filename = f"{session_name}_{year}_{tile_x}_{tile_y}.tif"
-            output_path = Path(self.pm.cropped_annotation_tif_folder, tile_filename)
+            output_path = Path(self.pm.coarse_annotation_tif_folder, tile_filename)
 
             with rasterio.open(annotation_path) as annotation:
                 try:

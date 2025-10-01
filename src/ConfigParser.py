@@ -91,6 +91,10 @@ class ConfigParser:
     @property
     def list_boundary_ign_geojson(self) -> list:
         return self.setup_dict.get("list_boundary_ign_geojson", [])
+
+    @property
+    def list_drone_test_geojson(self) -> list:
+        return self.setup_dict.get("list_drone_test_geojson", [])
     
     @property
     def match_ign_number_with_place_name(self) -> dict:
@@ -125,6 +129,24 @@ class ConfigParser:
     ## Clean.
     def clean_uav_session(self) -> bool:
         return bool(self.clean_dict.get("uav_session", False))
+    
+    def clean_coarse_cropped_ortho_tif(self) -> bool:
+        return bool(self.clean_dict.get("coarse_cropped_ortho_tif", False))    
+    
+    def clean_coarse_annotation_tif(self) -> bool:
+        return bool(self.clean_dict.get("coarse_annotation_tif", False))
+    
+    def clean_coarse_train(self) -> bool:
+        return bool(self.clean_dict.get("coarse_train", False))
+
+    def clean_refine_cropped_ortho_tif(self) -> bool:
+        return bool(self.clean_dict.get("refine_cropped_ortho_tif", False))    
+    
+    def clean_refine_annotation_tif(self) -> bool:
+        return bool(self.clean_dict.get("refine_annotation_tif", False))
+    
+    def clean_refine_train(self) -> bool:
+        return bool(self.clean_dict.get("refine_train", False))
 
     
     ## Models.
@@ -167,3 +189,46 @@ class ConfigParser:
     @property
     def path_models_checkpoints(self) -> str:
         return self.train_dict.get("path_output_dir", "")
+
+    @property
+    def weight_dice(self) -> float:
+        return float(self.model_dict.get("weight_dice", 0.0))
+    
+    @property
+    def weight_ce(self) -> float:
+        return float(self.model_dict.get("weight_ce", 0.0))
+
+    @property
+    def resume_coarse_training(self) -> str | None:
+        t = self.train_dict.get("coarse_training", None)
+        if t == None: return None
+
+        return t.get("resume_from", "")
+
+    @property
+    def model_path_coarse(self) -> Path | None:
+        t = self.train_dict.get("coarse_training", None)
+        if t == None: return None
+        p = t.get("model_path", None)
+        return Path(p) if p != None else None
+
+    @property
+    def resume_refine_training(self) -> str | None:
+        t = self.train_dict.get("refine_training", None)
+        if t == None: return None
+
+        return t.get("resume_from", "")
+
+    @property
+    def upload_on_huggingface(self) -> bool:
+        t = self.train_dict.get("refine_training", False)
+        if t == False: return False
+
+        return t.get("upload_on_huggingface", False)
+
+    @property
+    def model_path_refine(self) -> Path | None:
+        t = self.train_dict.get("refine_training", None)
+        if t == None: return None
+        p = t.get("model_path", None)
+        return Path(p) if p != None else None
