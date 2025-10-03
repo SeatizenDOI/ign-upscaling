@@ -8,6 +8,12 @@ class PathManager:
     def __init__(self, output_path: Path) -> None:
         self.output_path = output_path
 
+        self.ign_folder = Path(self.output_path, "ign")
+        self.ign_raw_data = Path(self.ign_folder, "raw_data")
+        self.ign_useful_data = Path(self.ign_folder, "useful_data")
+        self.ign_regroup_prediction = Path(self.ign_folder, "regroup_predictions")
+
+
         self.uav_folder = Path(self.output_path, "uav")
         self.uav_sessions_folder = Path(self.uav_folder, "sessions")
 
@@ -29,10 +35,16 @@ class PathManager:
         self.refine_train_images_folder = Path(self.refine_train_folder, "images")
         self.refine_train_annotation_folder = Path(self.refine_train_folder, "annotations")
 
+        self.ign_prediction_inference_raster_folder = Path(self.output_path, "final_predictions_raster")
+
 
 
     def setup(self, cp: ConfigParser) -> None:
         print("------ [CLEANING] ------")
+        if cp.clean_ign_folder() and self.ign_folder.exists():
+            print(f"* Delete {self.ign_folder}")
+            shutil.rmtree(self.ign_folder)
+
         if cp.clean_uav_session() and self.uav_sessions_folder.exists():
             print(f"* Delete {self.uav_sessions_folder}")
             shutil.rmtree(self.uav_sessions_folder)
@@ -62,6 +74,11 @@ class PathManager:
             shutil.rmtree(self.refine_train_folder)
 
         print(f"* Create all subfolders.")
+        self.ign_raw_data.mkdir(exist_ok=True, parents=True)
+        self.ign_useful_data.mkdir(exist_ok=True, parents=True)
+        self.ign_regroup_prediction.mkdir(exist_ok=True, parents=True)
+
+
         self.uav_sessions_folder.mkdir(exist_ok=True, parents=True)
 
         self.coarse_cropped_ortho_tif_folder.mkdir(exist_ok=True, parents=True)

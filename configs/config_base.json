@@ -4,6 +4,7 @@
     "global": {
         "output_path": "output",
         "clean": {
+            "ign_folder": false,
             "uav_session": false,
             "coarse_cropped_ortho_tif": false,
             "coarse_annotation_tif": false,
@@ -14,12 +15,24 @@
         }
     },
     "setup": {
-        "list_ign_parts": [
-            "./data/ign/IGN_2017_974/974-2017-0315-7670-U40S-0M20-E080_clipped.tif",
-            "./data/ign/IGN_2017_974/974-2017-0320-7660-U40S-0M20-E080_clipped.tif",
-            "./data/ign/IGN_2022_974/974-2022-0315-7670-U40S-0M20-E080_clipped.tif",
-            "./data/ign/IGN_2022_974/974-2022-0320-7660-U40S-0M20-E080_clipped.tif"
+        "ign_link_files_parts": [
+            "https://data.geopf.fr/telechargement/download/BDORTHO/BDORTHO_2-0_RVB-0M20_JP2-E080_RGR92UTM40S_D974_2022-01-01/BDORTHO_2-0_RVB-0M20_JP2-E080_RGR92UTM40S_D974_2022-01-01.7z.001",
+            "https://data.geopf.fr/telechargement/download/BDORTHO/BDORTHO_2-0_RVB-0M20_JP2-E080_RGR92UTM40S_D974_2022-01-01/BDORTHO_2-0_RVB-0M20_JP2-E080_RGR92UTM40S_D974_2022-01-01.7z.002",
+            "https://data.geopf.fr/telechargement/download/BDORTHO/BDORTHO_2-0_RVB-0M20_JP2-E080_RGR92UTM40S_D974_2022-01-01/BDORTHO_2-0_RVB-0M20_JP2-E080_RGR92UTM40S_D974_2022-01-01.7z.003",
+            "https://data.geopf.fr/telechargement/download/BDORTHO/BDORTHO_1-0_RVB-0M20_JP2-E080_RGR92UTM40S_D974_2017-01-01/BDORTHO_1-0_RVB-0M20_JP2-E080_RGR92UTM40S_D974_2017-01-01.7z.001",
+            "https://data.geopf.fr/telechargement/download/BDORTHO/BDORTHO_1-0_RVB-0M20_JP2-E080_RGR92UTM40S_D974_2017-01-01/BDORTHO_1-0_RVB-0M20_JP2-E080_RGR92UTM40S_D974_2017-01-01.7z.002",
+            "https://data.geopf.fr/telechargement/download/BDORTHO/BDORTHO_1-0_RVB-0M20_JP2-E080_RGR92UTM40S_D974_2017-01-01/BDORTHO_1-0_RVB-0M20_JP2-E080_RGR92UTM40S_D974_2017-01-01.7z.003"
         ],
+        "ign_layer_to_keep": [
+            "0310-7670", "0310-7675", "0315-7665", "0315-7670",
+            "0315-7675", "0320-7655", "0320-7660", "0320-7665",
+            "0325-7650", "0335-7640", "0340-7640"
+        ],
+        "ign_useful_surface": ["./configs/emprise_lagoon.geojson"],
+        "match_place_with_ign_code": {
+            "TROU-DEAU": "0315-7670",
+            "ST-LEU": "0320-7660" 
+        },
         "list_uav_sessions": [
             "20231202_REU-TROU-DEAU_UAV-01_01", "20231208_REU-ST-LEU_UAV-01_03"
         ],
@@ -32,10 +45,6 @@
             "./configs/drone_test_polygon_stleu.geojson",
             "./configs/drone_test_polygon_troudeau.geojson"
         ],
-        "match_ign_number_with_place_name": {
-            "0315-7670": "TROU-DEAU",
-            "0320-7660": "ST-LEU"
-        },
         "tiles": {
             "tile_size": 256,
             "horizontal_overlap": 0.75,
@@ -65,8 +74,6 @@
             "model_path": "",
             "resume_from": null,
             "upload_on_huggingface": false
-        }
-
-        
+        }       
     }
 }

@@ -9,10 +9,11 @@ from src.utils.lib_tools import print_header
 from src.utils.training_step import TrainingStep
 
 from src.training.main import main_launch_training
+from inference import main_raster as inference_main
 
 def parse_args() -> Namespace:
 
-    parser = ArgumentParser(prog="The point is the mask training", description="Workflow to WSSS training on UAV orthophoto using ASV prediction.")
+    parser = ArgumentParser(prog="Ign-upscaling training", description="Workflow to train on IGN tiles using UAV predictions.")
 
     # Config.
     parser.add_argument("-cp", "--config_path", default="./configs/config_base.json", help="Path to the config file.")
@@ -33,17 +34,17 @@ def main(opt: Namespace) -> None:
     pm = PathManager(cp.output_path)
     pm.setup(cp)
 
-    # Download uav orthophoto.
-    uav_manager = UAVManager(cp, pm)
-
     # Initialize ign tile manager.
     ign_manager = IGNManager(cp, pm)
+
+    # Download uav orthophoto.
+    uav_manager = UAVManager(cp, pm)
 
     # Extract tiles and annotations.
     tile_manager = TileManager(cp, pm)
     tile_manager.create_tiles_and_annotations(uav_manager, ign_manager)
     tile_manager.convert_tiff_to_png(pm.coarse_cropped_ortho_tif_folder, pm.coarse_train_images_folder)
-    tile_manager.convert_tiff_to_png(pm.coarse_upsampled_annotation_tif_folder, pm.coarse_train_annotation_folder)
+    tile_manager.convert_tiff_to_png(pm.coarse_annotation_tif_folder, pm.coarse_train_annotation_folder)
     tile_manager.validate_annotations_pngs()
 
     # First training.
@@ -52,7 +53,43 @@ def main(opt: Namespace) -> None:
     else:
         first_model_path = cp.model_path_coarse
 
-    print(first_model_path)
+    # Perform inference
+    if not pm.ign_prediction_inference_raster_folder.exists() or len(list(pm.ign_prediction_inference_raster_folder.iterdir())) == 0:
+        inference_args = Namespace(
+            enable_folder=True, enable_session=False, enable_csv=False, 
+            path_folder=pm.ign_useful_data, path_session=None, path_csv_file=None, 
+            path_segmentation_model=first_model_path, 
+            path_geojson=['./configs/emprise_lagoon.geojson'], 
+            horizontal_overlap=0.75, 
+            vertical_overlap=0.75, 
+            tile_size=256, 
+            path_output=pm.output_path, 
+            index_start='0', 
+            clean=True, 
+            max_pixels_by_slice_of_rasters=800000000,
+            regroup_all_prediction=True
+        )
+        inference_main(inference_args)
+    else:
+        print("\n\n------ [INFERENCE - Predictions rasters already exists] ------\n")
+
+    # Regroup all predictions into one big file to apply seagrass annotation.
+    ign_manager.regroup_inference_pred_into_one_file_by_year()
+
+    # Apply Seagrass annotation on bigtile.
+
+
+
+    # Split The tile
+
+    # Retrain
+        # First training.
+    # if cp.model_path_refine == None:
+    #     second_model_path = main_launch_training(cp, pm.refine_train_folder, TrainingStep.REFINE)
+    # else:
+    #     second_model_path = cp.model_path_refine
+
+    # Perform evaluation
 
 
 if __name__ == "__main__":

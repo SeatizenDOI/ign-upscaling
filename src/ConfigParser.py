@@ -72,6 +72,19 @@ class ConfigParser:
         if self.model_dict == {}: raise NameError(f"Cannot find {MODEL_PARAM} in config json")
 
     ## Getter part.
+
+    @property
+    def ign_link_files_parts(self) -> list:
+        return self.setup_dict.get("ign_link_files_parts", [])
+    
+    @property
+    def ign_layer_to_keep(self) -> list:
+        return self.setup_dict.get("ign_layer_to_keep", [])
+    
+    @property
+    def ign_useful_surface(self) -> list:
+        return self.setup_dict.get("ign_useful_surface", [])
+
     @property
     def ign_parts(self) -> list:
         return self.setup_dict.get("list_ign_parts", [])
@@ -97,8 +110,8 @@ class ConfigParser:
         return self.setup_dict.get("list_drone_test_geojson", [])
     
     @property
-    def match_ign_number_with_place_name(self) -> dict:
-        return self.setup_dict.get("match_ign_number_with_place_name", {})
+    def match_place_with_ign_code(self) -> dict:
+        return self.setup_dict.get("match_place_with_ign_code", {})
     
     @property
     def hugging_face_token(self) -> str:
@@ -127,6 +140,9 @@ class ConfigParser:
         return int(self.tile_size * (1 - self.vertical_overlap))
     
     ## Clean.
+    def clean_ign_folder(self) -> bool:
+        return bool(self.clean_dict.get("ign_folder", False))
+    
     def clean_uav_session(self) -> bool:
         return bool(self.clean_dict.get("uav_session", False))
     
@@ -200,35 +216,35 @@ class ConfigParser:
 
     @property
     def resume_coarse_training(self) -> str | None:
-        t = self.train_dict.get("coarse_training", None)
+        t = self.train_dict.get("first_model", None)
         if t == None: return None
 
         return t.get("resume_from", "")
 
     @property
     def model_path_coarse(self) -> Path | None:
-        t = self.train_dict.get("coarse_training", None)
+        t = self.train_dict.get("first_model", None)
         if t == None: return None
         p = t.get("model_path", None)
         return Path(p) if p != None else None
 
     @property
     def resume_refine_training(self) -> str | None:
-        t = self.train_dict.get("refine_training", None)
+        t = self.train_dict.get("second_model", None)
         if t == None: return None
 
         return t.get("resume_from", "")
 
     @property
     def upload_on_huggingface(self) -> bool:
-        t = self.train_dict.get("refine_training", False)
+        t = self.train_dict.get("second_model", False)
         if t == False: return False
 
         return t.get("upload_on_huggingface", False)
 
     @property
     def model_path_refine(self) -> Path | None:
-        t = self.train_dict.get("refine_training", None)
+        t = self.train_dict.get("second_model", None)
         if t == None: return None
         p = t.get("model_path", None)
         return Path(p) if p != None else None

@@ -20,7 +20,7 @@ def parse_args() -> Namespace:
 
     # Path of input.
     parser.add_argument("-pfol", "--path_folder", default="./data/ign/inference/", help="Path to folder of session")
-    parser.add_argument("-pses", "--path_session", default=None, help="Path to the session")
+    parser.add_argument("-pses", "--path_session", default="./output/ign/useful_data/974-2017-0315-7675-U40S-0M20-E080.tif", help="Path to the session")
     parser.add_argument("-pcsv", "--path_csv_file", default=None, help="Path to the csv file")
 
     # Model arguments.

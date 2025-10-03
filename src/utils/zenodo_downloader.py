@@ -4,6 +4,7 @@ import hashlib
 import zipfile
 import requests
 import traceback
+import subprocess
 from tqdm import tqdm
 from pathlib import Path
 
@@ -113,3 +114,10 @@ def md5(fname: Path) -> str:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
+
+
+def extract_7z_parts(file: Path, output_dir: Path):
+    """ Use 7z utility to extract big files"""
+    subprocess.run([
+        "7z", "x", str(file), f"-o{output_dir}"
+    ], check=True)

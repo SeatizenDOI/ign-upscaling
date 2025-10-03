@@ -56,11 +56,10 @@ class TileManager:
             
             session_name = "_".join(annotation_path.name.split("_")[0:4])
             place = "-".join(annotation_path.name.split("_")[1].split("-")[1:]) # Assume the file start with the session_name.
-            ign_orthophotos_path = ign_manager.ortho_by_place.get(place, None)
+            ign_orthophotos_path = ign_manager.get_orthophoto_by_place(place)
 
-            if ign_orthophotos_path == None:
+            if len(ign_orthophotos_path) == 0:
                 raise NameError(f"No orthophotos found for place {place}")
-
 
             for ortho_path in ign_orthophotos_path:
                 print(f"Working with orthophoto {ortho_path.name}")
@@ -76,7 +75,6 @@ class TileManager:
                     ]
                 with Pool(NUM_WORKERS) as pool:
                     list(tqdm(pool.imap_unordered(self.process_tile, tile_coords), total=len(tile_coords)))
-
 
 
     def convert_tiff_to_png(self, input_dir: Path, output_dir: Path) -> None:
@@ -135,6 +133,7 @@ class TileManager:
                 continue
 
         print(f"We have delete {cpt} annotations")
+
 
     def process_tile(self, args: tuple[str, int, int, Path, Path]) -> None:
         session_name, tile_x, tile_y, orthophoto_path, annotation_path, boundary_ign, zone_test = args
